@@ -11,15 +11,6 @@ services:
       - "./.aws:/root/.aws:ro"
     entrypoint: ["lein"]
     working_dir: "/usr/src/app"
-  proxy:
-    build:
-      context: .
-      dockerfile: datomic-proxy.dockerfile
-    command: --port 0.0.0.0:8182 calendar-defender
-    ports:
-      - "8182:8182"
-    volumes:
-      - "./.aws:/root/.aws:ro"
   aws:
     image: mesosphere/aws-cli
     volumes:
