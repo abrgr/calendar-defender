@@ -2,10 +2,13 @@ version: "2"
 
 services:
   lein:
-    image: clojure:openjdk-8-lein-2.9.1-alpine
+    build:
+      context: .
+      dockerfile: lein.dockerfile
     volumes:
       - ".:/usr/src/app"
       - "./.m2:/root/.m2"
+      - "./.aws:/root/.aws:ro"
     entrypoint: ["lein"]
     working_dir: "/usr/src/app"
   proxy:
