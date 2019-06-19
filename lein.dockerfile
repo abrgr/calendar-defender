@@ -15,9 +15,10 @@ RUN apk -v --no-cache add \
       curl https://docs.datomic.com/cloud/files/datomic-socks-proxy > /datomic-socks-proxy && \
       chmod 755 /datomic-socks-proxy && \
       printf "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null" > /etc/ssh/ssh_config && \
-      printf '#!/bin/bash\n/datomic-socks-proxy "$1" &\nlein "${@:2}"' > /runner
+      printf '#!/bin/bash\n/datomic-socks-proxy "$1" &\nexec lein "${@:2}"' > /runner && \
+      chmod 755 /runner
 
-ENTRYPOINT ["jshell", "lein"]
+ENTRYPOINT ["/runner"]
 
 VOLUME /root/.aws
 

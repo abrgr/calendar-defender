@@ -9,8 +9,11 @@ services:
       - ".:/usr/src/app"
       - "./.m2:/root/.m2"
       - "./.aws:/root/.aws:ro"
-    entrypoint: ["lein"]
+    command: ["calendar-defender"]
     working_dir: "/usr/src/app"
+    environment:
+      - 'DATOMIC_APP_INFO_MAP={:app-name "calendar-defender"}'
+      - 'DATOMIC_ENV_MAP={:env :local}'
   aws:
     image: mesosphere/aws-cli
     volumes:
