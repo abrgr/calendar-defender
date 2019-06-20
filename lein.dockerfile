@@ -7,7 +7,7 @@ RUN apk -v --no-cache add \
         curl \
         git
 
-ENTRYPOINT ["/runner"]
+ENTRYPOINT ["lein"]
 
 VOLUME /root/.aws
 

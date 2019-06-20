@@ -10,7 +10,6 @@ services:
       - ".:/usr/src/app"
       - "./.m2:/root/.m2"
       - "./.aws:/root/.aws:ro"
-    command: ["calendar-defender"]
     working_dir: "/usr/src/app"
     ports:
       - "9500:9500"

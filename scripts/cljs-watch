@@ -1,2 +1,2 @@
 #!/bin/bash
-exec docker-compose run --rm --service-ports lein calendar-defender trampoline run -m figwheel.main -- --build dev
+exec docker-compose run --rm --service-ports lein trampoline run -m figwheel.main -- --build dev
