@@ -26,6 +26,8 @@
 
 (def get-conn (memoize #(d/connect (client) {:db-name "calendar-defender"})))
 
+(def get-db (memoize #(d/db (get-conn))))
+
 (def schema
   [{:db/ident :user/email
     :db/valueType :db.type/string
