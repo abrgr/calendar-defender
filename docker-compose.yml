@@ -12,11 +12,7 @@ services:
       - "./.aws:/root/.aws:ro"
     command: ["calendar-defender"]
     working_dir: "/usr/src/app"
-    environment:
-      - 'DATOMIC_APP_INFO_MAP={:app-name "calendar-defender"}'
-      - 'DATOMIC_ENV_MAP={:env :local}'
     ports:
-      - "8182:8182"
       - "9500:9500"
   aws:
     image: mesosphere/aws-cli
@@ -30,4 +26,7 @@ services:
       - ".:/usr/src/app"
       - "./.m2:/root/.m2"
       - "./.aws:/root/.aws:ro"
+    environment:
+      - 'DATOMIC_APP_INFO_MAP={:app-name "calendar-defender"}'
+      - 'DATOMIC_ENV_MAP={:env :local}'
     working_dir: "/usr/src/app"

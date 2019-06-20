@@ -1,2 +1,2 @@
 #!/bin/bash
-exec docker-compose run --rm --service-ports lein calendar-defender repl
+exec docker-compose run --rm --entrypoint="/repl" tools-deps calendar-defender
