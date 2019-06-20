@@ -1,2 +1,2 @@
 #!/bin/bash
-exec docker-compose run --rm --entrypoint="lein" lein run -m datomic.ion.dev '{:op :push}'
+exec docker-compose run --rm tools-deps clojure -A:dev -m datomic.ion.dev '{:op :push}'

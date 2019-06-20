@@ -1,0 +1,3 @@
+#!/bin/bash
+EXECUTION_ARN="$1"
+exec docker-compose run --rm tools-deps clojure -A:dev -m datomic.ion.dev '{:op :deploy-status :execution-arn "'"${EXECUTION_ARN}"'"}'

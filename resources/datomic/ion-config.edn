@@ -1,7 +1,7 @@
 {:allow [
    calendar-defender.session/create-from-google]
  :app-name "calendar-defender"
- :lambdas {:create-session-from-google
+ :lambdas {:session-from-google
             {:fn calendar-defender.session/create-from-google
              :description "Create session from google"
              :integration :api-gateway/proxy}}}

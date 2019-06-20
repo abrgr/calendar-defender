@@ -1,0 +1,4 @@
+#!/bin/bash
+REV="$1"
+COMPUTE_GROUP="calendar-defender-Compute-174TNZDSJJ40R"
+exec docker-compose run --rm tools-deps clojure -A:dev -m datomic.ion.dev '{:op :deploy :rev "'"${REV}"'" :group "'"${COMPUTE_GROUP}"'"}'

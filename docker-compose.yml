@@ -18,3 +18,12 @@ services:
     image: mesosphere/aws-cli
     volumes:
       - "./.aws:/root/.aws:ro"
+  tools-deps:
+    build:
+      context: .
+      dockerfile: tools-deps.dockerfile
+    volumes:
+      - ".:/usr/src/app"
+      - "./.m2:/root/.m2"
+      - "./.aws:/root/.aws:ro"
+    working_dir: "/usr/src/app"
