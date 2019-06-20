@@ -14,6 +14,8 @@ services:
     environment:
       - 'DATOMIC_APP_INFO_MAP={:app-name "calendar-defender"}'
       - 'DATOMIC_ENV_MAP={:env :local}'
+    ports:
+      - "8182:8182"
   aws:
     image: mesosphere/aws-cli
     volumes:
