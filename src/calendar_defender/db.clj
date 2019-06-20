@@ -30,11 +30,28 @@
   [{:db/ident :user/email
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
+    :db/unique :db.unique/identity
     :db/doc "User's email address"}
+   {:db/ident :user/name
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "User's name"}
+   {:db/ident :user/locale
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "User's locale"}
+   {:db/ident :user/picture-url
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "User's picture url"}
    {:db/ident :user.google/refresh-token
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/doc "User's google refresh token"}])
+    :db/doc "User's google refresh token"}
+   {:db/ident :user.google/id
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "User's google id"}])
 
 (defn ensure-schema []
   (d/transact (get-conn) {:tx-data schema}))

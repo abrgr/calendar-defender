@@ -29,7 +29,8 @@
             [lein-cljsbuild "1.1.7"]]
   :dependencies ~(concat
                    dependencies
-                   '[[reagent "0.8.1"]])
+                   '[[reagent "0.8.1"]
+                     [cljs-http "0.1.46"]])
   :source-paths ~source-paths
   :profiles {:dev
               {:dependencies ~(concat dev-dependencies
@@ -41,4 +42,5 @@
                                         [org.eclipse.jetty.websocket/websocket-server "9.2.24.v20180105"]])}}
   :repositories ~repos
   :resource-paths ["target"]
+  :figwheel {:hawk-options {:watcher :polling}}
   :repl-options {:init-ns calendar-defender.core})
