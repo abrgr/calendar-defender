@@ -1,11 +1,12 @@
 (ns calendar-defender.session
   (:require [clojure.data.json :as json]
+            [clojure.java.io :as io]
             [datomic.client.api :as d]
             [calendar-defender.db :as db]
             [datomic.ion.lambda.api-gateway :as apigw]))
 
 (defn- create-from-google* [{:keys [headers body]}]
-  (let [{:keys [email]} (-> body json/read-str)
+  (let [{:keys [email]} (-> body io/reader (json/read :key-fn keyword))
         tx [{:user/email email}]
         result (d/transact (db/get-conn) {:tx-data tx})]
     {:status 200
