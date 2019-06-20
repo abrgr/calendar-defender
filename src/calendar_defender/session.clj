@@ -81,7 +81,7 @@
 (defn- create-from-token [id-token]
   (let [builder (GoogleIdTokenVerifier$Builder. (NetHttpTransport.) (JacksonFactory/getDefaultInstance))
         verifier (-> builder
-                     (.setAudience (get-param "google-client-id"))
+                     (.setAudience [(get-param "google-client-id")])
                      (.build))]
     (let [token (.verify verifier id-token)]
       (when (nil? token)

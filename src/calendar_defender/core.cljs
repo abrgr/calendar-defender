@@ -29,7 +29,7 @@
 (defn- sign-in [opts]
   "opts takes keys of either :code or :id-token"
   (async/go
-    (let [{:keys [body status]} (async/<! (session-from-google opts))
+    (let [{:keys [body status] :as resp} (async/<! (session-from-google opts))
           _ (println "RESP" resp body status)
           {:keys [session user]} body]
       (if (= status 200)
