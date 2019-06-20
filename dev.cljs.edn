@@ -1,0 +1,5 @@
+^{:open-url false
+  :hawk-options {:watcher :polling}
+  :css-dirs ["resources/public/styles"]
+  :watch-dirs ["src"]}
+{:main calendar-defender.core}

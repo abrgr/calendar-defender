@@ -2,6 +2,7 @@ version: "2"
 
 services:
   lein:
+    image: calendar-defender/lein
     build:
       context: .
       dockerfile: lein.dockerfile
@@ -16,6 +17,7 @@ services:
       - 'DATOMIC_ENV_MAP={:env :local}'
     ports:
       - "8182:8182"
+      - "9500:9500"
   aws:
     image: mesosphere/aws-cli
     volumes:
