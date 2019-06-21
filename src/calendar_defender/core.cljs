@@ -18,7 +18,8 @@
   "opts takes keys of either :code or :id-token"
   (http/post
     "https://m03xfezsf4.execute-api.us-east-1.amazonaws.com/prod/session-from-google"
-    {:json-params opts
+    {:edn-params opts
+     :headers {"Accept" "application/edn"}
      :with-credentials? false}))
 
 (defn- sign-in-error [{:keys [err-code]}]

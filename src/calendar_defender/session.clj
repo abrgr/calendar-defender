@@ -15,7 +15,7 @@
    "Access-Control-Allow-Methods" "*"
    "Access-Control-Allow-Origin" "*"})
 
-(def std-headers (merge cors-headers {"Content-Type" "application/json"}))
+(def std-headers (merge cors-headers {"Content-Type" "application/edn"}))
 
 (defn fail
   [k]
@@ -94,24 +94,27 @@
 
 (defn- create-from-google* [{:keys [headers body]}]
   (try
-    (let [{:keys [code id-token]} (-> body io/reader (json/read :key-fn keyword))
+    (let [{:keys [code id-token]} (-> body
+                                      io/reader
+                                      (java.io.PushbackReader.)
+                                      read)
           result (if (some? code)
                    (create-from-code code)
                    (create-from-token id-token))]
       {:status 200
        :headers std-headers
-       :body (json/write-str result)})
+       :body (pr-str result)})
     (catch Exception e
       (case (-> e ex-data :anomaly)
         :unauthorized {:status 403
                        :headers std-headers
-                       :body (json/write-str {:err-code :unauthorized})}
+                       :body (pr-str {:err-code :unauthorized})}
         :require-sign-up {:status 404
                           :headers std-headers
-                          :body (json/write-str {:err-code :require-sign-up})}
+                          :body (pr-str {:err-code :require-sign-up})}
         (do (cast/alert {:msg "Authentication failure" :ex e})
             {:status 500
              :headers std-headers
-             :body (json/write-str {:err-code :error})})))))
+             :body (pr-str {:err-code :error})})))))
 
 (def create-from-google (apigw/ionize create-from-google*))
