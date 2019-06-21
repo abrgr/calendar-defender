@@ -2,4 +2,7 @@
   :hawk-options {:watcher :polling}
   :css-dirs ["resources/public/styles"]
   :watch-dirs ["src"]}
-{:main calendar-defender.core}
+{:main calendar-defender.core
+ :npm-deps {"@mrblenny/react-flow-chart" "0.0.6"}
+ :install-deps false ; need to manually fix up some npm packages
+ :optimizations :none}

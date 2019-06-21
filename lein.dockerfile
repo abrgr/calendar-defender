@@ -5,7 +5,9 @@ RUN apk -v --no-cache add \
         bash \
         openssh \
         curl \
-        git
+        git \
+        nodejs \
+        npm
 
 ENTRYPOINT ["lein"]
 
