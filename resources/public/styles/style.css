@@ -16,3 +16,26 @@
 .google-sign-in:active {
   background-image: url("/images/google/btn_google_signin_dark_pressed_web.png");
 }
+
+.flow-page {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.flow-page .sidebar {
+  width: 300px;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.flow-page .sidebar .item {
+  padding: 20px 30px;
+  font-size: 14px;
+  background: white;
+  cursor: move;
+}

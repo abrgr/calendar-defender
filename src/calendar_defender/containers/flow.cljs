@@ -8,10 +8,15 @@
 
 (defn- handle-delete [state] state)
 
+(defn- map-keys-to-str [m]
+  (->> m
+       (mapv #(vector (-> % first name) (second %)))
+       (into {})))
+
 (def ^:private chart-callbacks
   #js{:onDragNode
         (flow-macros/handler-3 _ data id
-          (swap! app-state/flow assoc-in [:nodes id :position] data))
+          (swap! app-state/flow assoc-in [:nodes id :position] (select-keys data [:x :y])))
       :onDragCanvas
         (flow-macros/handler-2 _ data
           (swap! app-state/flow assoc :offset data))
@@ -23,7 +28,7 @@
                                                           :to {}}))
       :onLinkMove
         (flow-macros/handler-1 {:keys [linkId toPosition]}
-          (swap! app-state/flow assoc-in [:links linkId :to :position] toPosition))
+          (swap! app-state/flow assoc-in [:links linkId :to :position] (select-keys toPosition [:x :y])))
       :onLinkComplete
         (flow-macros/handler-1 {:keys [linkId fromNodeId fromPortId toNodeId toPortId]}
           (let [s @app-state/flow
@@ -63,15 +68,31 @@
            (swap! app-state/flow assoc-in [:nodes nodeId :size] size))
       :onCanvasDrop
          (flow-macros/handler-1 {:keys [data position]}
-           (let [id (random-uuid)]
-             (swap! app-state/flow assoc-in [:nodes id] (merge data {:id id
+           (let [id (str (random-uuid))
+                 node (update data :ports map-keys-to-str)]
+             (swap! app-state/flow assoc-in [:nodes id] (merge node {:id id
                                                                      :position (select-keys position [:x :y])}))))
       :onPortPositionChange
          (fn [node port position]
-           (clj->js (swap! app-state/flow assoc-in [:nodes (.-id node) :ports (.-id port) :position] {:x (.-x position)
-                                                                                                      :y (.-y position)})))})
+           (let [node-id (.-id node)
+                 port-id (.-id port)
+                 pos {:x (.-x position) :y (.-y position)}]
+             (clj->js (swap! app-state/flow assoc-in [:nodes node-id :ports port-id :position] pos))))})
 
 (defn component []
-  [flow-chart-component {:chart (clj->js @app-state/flow)
-                         :callbacks chart-callbacks}])
+  [:div.flow-page
+    [flow-chart-component {:chart (clj->js @app-state/flow)
+                           :callbacks chart-callbacks}]
+    [:div.sidebar
+      [:div.item {:draggable true
+                  :onDragStart #(-> %
+                                    .-dataTransfer
+                                    (.setData
+                                       react-flow-chart/REACT_FLOW_CHART
+                                       (.stringify js/JSON (clj->js {:type :input-output
+                                                                     :ports {"p10" {:id "p10"
+                                                                                    :type "output"
+                                                                                    :properties {}}}
+                                                                     :properties {}}))))}
+                 "My node"]]])
 
