@@ -1,6 +1,7 @@
 (ns calendar-defender.app-state
   (:require [reagent.core :as r]))
 
+(comment
 (def chart {:offset {:x 0 :y 0}
             :nodes {"n1" {:id "n1"
                          :type :output-only
@@ -26,7 +27,7 @@
                                 :type :output}}}}
             :links {}
             :selected {}
-            :hovered {}})
+            :hovered {}}))
 
 (defonce nav (r/atom {:page :home
                       :params {}}))
@@ -34,10 +35,8 @@
                        :user nil
                        :loading false
                        :err-msg nil}))
-(defonce flow (r/atom chart))
-(comment
 (defonce flow (r/atom {:offset {:x 0 :y 0}
                        :nodes {}
                        :links {}
                        :selected {}
-                       :hovered {}})))
+                       :hovered {}}))

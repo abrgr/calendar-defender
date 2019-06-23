@@ -39,3 +39,21 @@
   background: white;
   cursor: move;
 }
+
+.flow-node {
+  padding: 30px;
+}
+
+.flow-node .question {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 30px;
+}
+
+.flow-node .answer {
+  display: block;
+}
+
+.flow-node .add-answer {
+  display: block;
+}

@@ -8,6 +8,46 @@
 
 (defn- handle-delete [state] state)
 
+(defn- stop-prop [e]
+  (.stopPropagation e))
+
+(defn- node-input [props]
+  (let [node-input-props {:on-click stop-prop
+                          :on-mouse-up stop-prop
+                          :on-mouse-down stop-prop}]
+    [:input (merge node-input-props props)]))
+
+(defmulti node-component* #(-> % :node .-type keyword))
+(defmethod node-component* :mult-choice-single
+  [{:keys [node]}]
+  (let [{{:keys [question answers]} :properties :keys [id ports]} (js->clj node :keywordize-keys true)]
+    (->> (concat [:div.flow-node]
+           [[node-input {:class :question
+                         :value question
+                         :on-change #(swap! app-state/flow assoc-in [:nodes id :properties :question] (-> % .-target .-value))}]]
+           (->> answers
+                (map-indexed
+                   (fn [idx answer]
+                     ^{:key idx} [node-input {:class :answer
+                                              :value answer
+                                              :on-change #(swap! app-state/flow assoc-in [:nodes id :properties :answers idx] (-> % .-target .-value))}])))
+           [[:button.add-answer
+              {:on-click #(swap! app-state/flow update-in [:nodes id] (fn [node]
+                                                                          (let [port-idx (-> node
+                                                                                             (get-in [:properties :answers])
+                                                                                             count)
+                                                                                port-id (str port-idx)]
+                                                                            (-> node
+                                                                                (update-in [:properties :answers] conj "")
+                                                                                (assoc-in [:ports port-id] {:id port-id
+                                                                                                            :type :output
+                                                                                                            :properties {:idx port-idx}})
+                                                                                ((fn [x] (println "HERE" port-id x) x))))))}
+              "+"]])
+         (into []))))
+
+(def ^:private node-component (r/reactify-component node-component*))
+
 (defn- map-keys-to-str [m]
   (->> m
        (mapv #(vector (-> % first name) (second %)))
@@ -82,17 +122,19 @@
 (defn component []
   [:div.flow-page
     [flow-chart-component {:chart (clj->js @app-state/flow)
-                           :callbacks chart-callbacks}]
+                           :callbacks chart-callbacks
+                           :Components #js{"NodeInner" node-component}}]
     [:div.sidebar
       [:div.item {:draggable true
                   :onDragStart #(-> %
                                     .-dataTransfer
                                     (.setData
                                        react-flow-chart/REACT_FLOW_CHART
-                                       (.stringify js/JSON (clj->js {:type :input-output
-                                                                     :ports {"p10" {:id "p10"
+                                       (.stringify js/JSON (clj->js {:type :mult-choice-single
+                                                                     :ports {"all" {:id "all"
                                                                                     :type "output"
                                                                                     :properties {}}}
-                                                                     :properties {}}))))}
-                 "My node"]]])
+                                                                     :properties {:question ""
+                                                                                  :answers []}}))))}
+                 "Multiple choice with single selection"]]])
 
