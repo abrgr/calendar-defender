@@ -41,10 +41,16 @@
                                                                                 (update-in [:properties :answers] conj "")
                                                                                 (assoc-in [:ports port-id] {:id port-id
                                                                                                             :type :output
-                                                                                                            :properties {:idx port-idx}})
-                                                                                ((fn [x] (println "HERE" port-id x) x))))))}
+                                                                                                            :properties {:idx port-idx}})))))}
               "+"]])
          (into []))))
+(defmethod node-component* :decline
+  [{:keys [node]}]
+  (let [{{:keys [reason]} :properties :keys [id]} (js->clj node :keywordize-keys true)]
+    [:div.flow-node
+       [node-input {:class :reason
+                    :value reason
+                    :on-change #(swap! app-state/flow assoc-in [:nodes id :properties :reason] (-> % .-target .-value))}]]))
 
 (def ^:private node-component (r/reactify-component node-component*))
 
@@ -74,8 +80,7 @@
           (let [s @app-state/flow
                 from-type (get-in s [:nodes fromNodeId :ports fromPortId :type])
                 to-type (get-in s [:nodes toNodeId :ports toPortId :type])]
-            (if (or (not= [from-type to-type] [:input :output])
-                    (not= [from-type to-type] [:output :input]))
+            (if (not= #{from-type to-type} #{:input :output})
               (swap! app-state/flow update :links #(dissoc % linkId))
               (swap! app-state/flow assoc-in [:links linkId :to] {:nodeId toNodeId
                                                                   :portId toPortId}))))
@@ -110,8 +115,15 @@
          (flow-macros/handler-1 {:keys [data position]}
            (let [id (str (random-uuid))
                  node (update data :ports map-keys-to-str)]
-             (swap! app-state/flow assoc-in [:nodes id] (merge node {:id id
-                                                                     :position (select-keys position [:x :y])}))))
+             (swap!
+               app-state/flow
+               assoc-in
+               [:nodes id]
+               (-> node
+                   (merge {:id id
+                           :position (select-keys position [:x :y])})
+                   (update-in [:type] keyword)
+                   (update-in [:ports] (fn [ports] (->> ports (map #(update-in % [1 :type] keyword)) (into {}))))))))
       :onPortPositionChange
          (fn [node port position]
            (let [node-id (.-id node)
@@ -130,9 +142,20 @@
                                     .-dataTransfer
                                     (.setData
                                        react-flow-chart/REACT_FLOW_CHART
+                                       (.stringify js/JSON (clj->js {:type :decline
+                                                                     :ports {"input" {:id "input"
+                                                                                      :type :input
+                                                                                      :properties {}}}
+                                                                     :properties {:reason ""}}))))}
+                 "Decline meeting"]
+      [:div.item {:draggable true
+                  :onDragStart #(-> %
+                                    .-dataTransfer
+                                    (.setData
+                                       react-flow-chart/REACT_FLOW_CHART
                                        (.stringify js/JSON (clj->js {:type :mult-choice-single
                                                                      :ports {"all" {:id "all"
-                                                                                    :type "output"
+                                                                                    :type :output
                                                                                     :properties {}}}
                                                                      :properties {:question ""
                                                                                   :answers []}}))))}
