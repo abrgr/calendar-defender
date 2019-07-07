@@ -26,7 +26,7 @@
   (let [title (inc idx)
         color (get color-palette (mod idx (count color-palette)))]
     [:div {:style {:border-bottom (str num-border-width " solid " color)}}
-      (if (some? idx) (inc idx) "Any")]))
+      (if (some? idx) (inc idx) "Other")]))
 
 (defmulti node-component* #(-> % :node .-type keyword))
 (defmethod node-component* :mult-choice-single
@@ -70,6 +70,11 @@
        [node-input {:class :reason
                     :value reason
                     :on-change #(swap! app-state/flow assoc-in [:nodes id :properties :reason] (-> % .-target .-value))}]]))
+(defmethod node-component* :start
+  [{:keys [node]}]
+  [:div.flow-node {:style {:background-color "green"
+                           :color "white"}}
+     [:div.node-title "Calendar Event Received"]])
 
 (def ^:private node-component (r/reactify-component node-component*))
 
@@ -99,7 +104,7 @@
                    :align-items "center"}}
       (if (some? idx)
         [number-component {:idx idx}]
-        [:div {:style {:border-bottom (str num-border-width " solid transparent")}} "Any"])
+        [:div {:style {:border-bottom (str num-border-width " solid transparent")}} "Other"])
       [port-inner-component {:selected (or isLinkSelected isLinkHovered)}]]))
 (defmethod port-component* :default
   [{:keys [port isLinkSelected isLinkHovered]}]
@@ -184,37 +189,98 @@
                  pos {:x (.-x position) :y (.-y position)}]
              (clj->js (swap! app-state/flow assoc-in [:nodes node-id :ports port-id :position] pos))))})
 
+(def ^:private sidebar-nodes
+  {"Decline meeting"
+    {:type :decline
+     :ports {"input" {:id "input"
+                      :type :input
+                      :properties {}}}
+     :properties {:reason ""}}
+   "Multiple choice with single selection"
+     {:type :mult-choice-single
+      :ports {"in" {:id "in"
+                    :type :input
+                    :properties {}}
+              "other" {:id "other"
+                       :type :output
+                       :properties {:node-type :mult-choice-single}}}
+      :properties {:question ""
+                   :answers []}}})
+
+(defn- sidebar-item [[title node]]
+  ^{:key title} [:div.item {:draggable true
+                            :onDragStart #(-> %
+                                              .-dataTransfer
+                                              (.setData
+                                                 react-flow-chart/REACT_FLOW_CHART
+                                                 (.stringify js/JSON (clj->js node))))}
+     title])
+
+(defmulti nodeify (fn [edges {:keys [type]}] type))
+(defmethod nodeify :start
+  [edges {:keys [id ports]}]
+  (nodeify edges (get-in edges [{:node-id id :port-id (-> ports keys first)} :node])))
+(defmethod nodeify :mult-choice-single
+  [edges {:keys [id ports] {:keys [question answers]} :properties}]
+  (let [other-node (get-in edges [{:node-id id :port-id "other"} :node])
+        regular-nexts (->> ports
+                           (map second)
+                           (map #(hash-map :edge (get edges {:node-id id :port-id (:id %)}) :port %))
+                           (filter #(and (-> % :edge some?)
+                                         (not= (-> % :port :id) "other")))
+                           (mapv #(merge (nodeify edges (-> % :edge :node))
+                                         {:n/when {:n/op :n.op/=
+                                                   :n.op/args [{:n.op.args/type :n.op.args.type/ref
+                                                                :n.op.args.ref/ref id}
+                                                               {:n.op.args/type :n.op.args.type/str
+                                                                :n.op.args.str/str (nth answers (-> % :port :properties :idx))}]}})))
+        other-nexts (if (nil? other-node)
+                        []
+                        [(merge (nodeify edges other-node)
+                                {:n/when {:n/op :n.op/not
+                                          :n.op/args [{:n/op :n.op/or
+                                                       :n.op/args (mapv :n/when regular-nexts)}]}})])]
+    {:n/type :n.type/mult-choice-single
+     :n/id id
+     :n.mult-choice/q question
+     :n.mult-choice/ans (mapv #(hash-map :n.mult-choice.ans/text % :n.mult-choice.ans/val %) answers)
+     :n/next (->> regular-nexts
+                  (concat other-nexts)
+                  (into []))}))
+(defmethod nodeify :decline
+  [edges {:keys [id] {:keys [reason]} :properties}]
+  {:n/type :n.type/decline
+   :n.decline/reason reason})
+
+(defn- to-nodes [{:keys [nodes links]}]
+  (let [edges (->> links
+                   vals
+                   (reduce
+                     (fn [edges
+                          {{from-node-id :nodeId from-port-id :portId} :from
+                           {to-node-id :nodeId to-port-id :portId} :to}]
+                       (assoc
+                         edges
+                         {:node-id from-node-id
+                          :port-id from-port-id}
+                         {:node-id to-node-id
+                          :port-id to-port-id
+                          :node (get nodes to-node-id)}))
+                     {}))
+        start (->> nodes
+                   (filter #(-> % second :type (= :start)))
+                   (map second)
+                   first)]
+    (nodeify edges start)))
+
 (defn component []
   [:div.flow-page
-    [flow-chart-component {:chart (clj->js @app-state/flow)
-                           :callbacks chart-callbacks
-                           :Components #js{"NodeInner" node-component
-                                           "Port" port-component}}]
-    [:div.sidebar
-      [:div.item {:draggable true
-                  :onDragStart #(-> %
-                                    .-dataTransfer
-                                    (.setData
-                                       react-flow-chart/REACT_FLOW_CHART
-                                       (.stringify js/JSON (clj->js {:type :decline
-                                                                     :ports {"input" {:id "input"
-                                                                                      :type :input
-                                                                                      :properties {}}}
-                                                                     :properties {:reason ""}}))))}
-                 "Decline meeting"]
-      [:div.item {:draggable true
-                  :onDragStart #(-> %
-                                    .-dataTransfer
-                                    (.setData
-                                       react-flow-chart/REACT_FLOW_CHART
-                                       (.stringify js/JSON (clj->js {:type :mult-choice-single
-                                                                     :ports {"in" {:id "in"
-                                                                                   :type :input
-                                                                                   :properties {}}
-                                                                             "all" {:id "all"
-                                                                                    :type :output
-                                                                                    :properties {:node-type :mult-choice-single}}}
-                                                                     :properties {:question ""
-                                                                                  :answers []}}))))}
-                 "Multiple choice with single selection"]]])
-
+    [:div.top-nav
+      [:button {:onClick #(println "VAL" (to-nodes @app-state/flow))} "Save"]]
+    [:div.main
+      [flow-chart-component {:chart (clj->js @app-state/flow)
+                             :callbacks chart-callbacks
+                             :Components #js{"NodeInner" node-component
+                                             "Port" port-component}}]
+      [:div.sidebar
+        (map sidebar-item sidebar-nodes)]]])
