@@ -54,6 +54,11 @@
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db/doc "User's google id"}
+   {:db/ident :user/flow
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one
+    :db/isComponent true
+    :db/doc "User's flow"}
    {:db/ident :n/id
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one

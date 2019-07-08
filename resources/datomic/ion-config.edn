@@ -1,8 +1,13 @@
 {:allow [
-   calendar-defender.session/create-from-google]
+   calendar-defender.ions.session/create-from-google
+   calendar-defender.ions.flow/upsert]
  :app-name "calendar-defender"
  :lambdas {:session-from-google
-            {:fn calendar-defender.session/create-from-google
+            {:fn calendar-defender.ions.session/create-from-google
              :description "Create session from google"
+             :integration :api-gateway/proxy}
+           :upsert-flow
+            {:fn calendar-defender.ions.flow/upsert
+             :description "Set user's flow"
              :integration :api-gateway/proxy}}}
 
